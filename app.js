@@ -164,7 +164,7 @@ document.getElementById('patientForm').addEventListener('submit', function(event
 
 function obtenerHistoriaMedica() {
   const patientId = prompt("Ingrese el ID del paciente:");
-  fetch(`https://backend-medication-request.onrender.com/historia-medica/${patientId}`)
+  fetch(`https://backend2-m79x.onrender.com/historia-medica/${patientId}`)
     .then(response => response.json())
     .then(data => {
       if (data.status === "success") {
