@@ -148,7 +148,7 @@ document.getElementById('patientForm').addEventListener('submit', function(event
         headers: {
         'Content-Type': 'application/json'
         },
-        bbody: JSON.stringify(medicationRequest)
+        body: JSON.stringify(medicationRequest)
     })
     .then(response => response.json())
     .then(data => {
