@@ -1,3 +1,4 @@
+<script>
 document.getElementById('patientForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
@@ -13,21 +14,24 @@ document.getElementById('patientForm').addEventListener('submit', function(event
     const address = document.getElementById('address').value;
     const city = document.getElementById('city').value;
     const postalCode = document.getElementById('postalCode').value;
-    //Información del Medicamento
+
+    // Medicamento
     const nameMedicine = document.getElementById('nameMedicine').value;
     const presentation = document.getElementById('presentation').value;
     const dose = document.getElementById('dose').value;
     const amount = document.getElementById('amount').value;
     const diagnosis = document.getElementById('disgnosis').value;
     const applicationDate = document.getElementById('applicationDate').value;
-    //Datos de la prescripción médica
+
+    // Datos prescripción
     const doctorName = document.getElementById('doctorName').value;
     const recipeDate = document.getElementById('recipeDate').value;
     const institution = document.getElementById('institution').value;
-    //Observaciones adicionales
+
+    // Observaciones
     const observations = document.getElementById('observations').value;
 
-    // Crear el objeto patient en formato FHIR
+    // Crear objeto Patient
     const patient = {
         resourceType: "Patient",
         name: [{
@@ -56,11 +60,10 @@ document.getElementById('patientForm').addEventListener('submit', function(event
             city: city,
             postalCode: postalCode,
             country: "Colombia"
-    }],
-
+        }]
     };
 
-    // Enviar los datos de Patient usando Fetch API
+    // Crear paciente y luego registrar la solicitud de medicamento
     fetch('https://backend2-m79x.onrender.com/pacientes', {
         method: 'POST',
         headers: {
@@ -70,111 +73,88 @@ document.getElementById('patientForm').addEventListener('submit', function(event
     })
     .then(response => response.json())
     .then(data => {
-        console.log('Success:', data);
-        alert('Paciente creado exitosamente!');
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-        alert('Hubo un error al crear el paciente.');
-    });
+        alert('✅ Paciente creado exitosamente');
 
+        const patientId = data.id;
 
-    // Crear el objeto MedicationRequest en formato FHIR
-    const medicationRequest = {
-    resourceType: "MedicationRequest",
-    status: "active",  // Estado de la solicitud (active, completed, cancelled)
-    intent: "order",   // Propósito (order, plan, proposal)
-    
-    // Medicamento solicitado
-    medicationCodeableConcept: {
-        text: nameMedicine,  // Nombre del medicamento en texto libre
-        coding: [{
-            display: `${nameMedicine} - ${presentation}`  // Nombre + presentación
-        }]
-    },
-    
-    // Paciente (En teoría, se debería obtener esta referencia del Patient existente)
-    subject: {
-        reference: "Patient/12345",  // ID del paciente en el sistema
-        display: "Nombre del Paciente"  // Nombre para mostrar
-    },
-    
-    // Médico que prescribe
-    requester: {
-        reference: `Practitioner/${doctorName.replace(/\s+/g, '-')}`,  // Referencia al médico
-        display: doctorName
-    },
-    
-    // Institución de salud
-    supportingInformation: [{
-        reference: `Organization/${institution.replace(/\s+/g, '-')}`,
-        display: institution
-    }],
-    
-    // Fechas importantes
-    authoredOn: recipeDate,  // Fecha de la receta
-    dosageInstruction: [{
-        text: dose,  // Dosis en texto libre
-        timing: {
-            event: [applicationDate]  // Fecha de aplicación
-        }
-    }],
-    
-    // Cantidad
-    quantity: {
-        value: parseInt(amount),  // Cantidad solicitada
-        unit: "Unidades"  //dependen del medicamento
-    },
-    
-    // Razón/motivo
-    reasonCode: [{
-        text: diagnosis  // Diagnóstico o justificación
-    }],
-    
-    // Observaciones
-    note: [{
-        text: observations || "Sin observaciones adicionales"
-    }],
-    
-    // Validación de sustitución
-    substitution: {
-        allowedBoolean: false  // ¿Permite sustitución genérica?
-    }
-};
+        // Crear MedicationRequest usando el ID del paciente
+        const medicationRequest = {
+            resourceType: "MedicationRequest",
+            status: "active",
+            intent: "order",
+            medicationCodeableConcept: {
+                text: nameMedicine,
+                coding: [{
+                    display: `${nameMedicine} - ${presentation}`
+                }]
+            },
+            subject: {
+                reference: `Patient/${patientId}`,
+                display: `${name} ${familyName}`
+            },
+            requester: {
+                reference: `Practitioner/${doctorName.replace(/\s+/g, '-')}`,
+                display: doctorName
+            },
+            supportingInformation: [{
+                reference: `Organization/${institution.replace(/\s+/g, '-')}`,
+                display: institution
+            }],
+            authoredOn: recipeDate,
+            dosageInstruction: [{
+                text: dose,
+                timing: {
+                    event: [applicationDate]
+                }
+            }],
+            quantity: {
+                value: parseInt(amount),
+                unit: "Unidades"
+            },
+            reasonCode: [{
+                text: diagnosis
+            }],
+            note: [{
+                text: observations || "Sin observaciones adicionales"
+            }],
+            substitution: {
+                allowedBoolean: false
+            }
+        };
 
-    // Enviar los datos usando Fetch API
-    fetch('https://backend2-m79x.onrender.com/pacientes', { //Aquí estaría el backend de Render
-        method: 'POST',
-        headers: {
-        'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(medicationRequest)
+        return fetch('https://backend2-m79x.onrender.com/medicationRequest', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(medicationRequest)
+        });
     })
     .then(response => response.json())
     .then(data => {
-        console.log('Success:', data);
-        alert('Paciente creado exitosamente!');
+        console.log('Solicitud de medicamento creada:', data);
+        alert('✅ Solicitud de medicamento creada exitosamente');
     })
     .catch((error) => {
         console.error('Error:', error);
-        alert('Hubo un error al procesar la solicitud de medicamento.');
+        alert('❌ Hubo un error durante el proceso');
     });
 });
 
-
 function obtenerHistoriaMedica() {
-  const patientId = prompt("Ingrese el ID del paciente:");
-  fetch(`https://backend2-m79x.onrender.com/historia-medica/${patientId}`)
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === "success") {
-        document.getElementById("historia-medica").innerText = JSON.stringify(data.historia, null, 2);
-      } else {
-        document.getElementById("historia-medica").innerText = "No se encontró la historia médica.";
-      }
-    })
-    .catch(error => {
-      document.getElementById("historia-medica").innerText = "Error al obtener la historia médica.";
-      console.error(error);
-    });
+    const patientId = prompt("Ingrese el ID del paciente:");
+    fetch(`https://backend2-m79x.onrender.com/historia-medica/${patientId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                document.getElementById("historia-medica").innerText = JSON.stringify(data.historia, null, 2);
+            } else {
+                document.getElementById("historia-medica").innerText = "No se encontró la historia médica.";
+            }
+        })
+        .catch(error => {
+            document.getElementById("historia-medica").innerText = "Error al obtener la historia médica.";
+            console.error(error);
+        });
 }
+</script>
