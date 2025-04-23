@@ -61,7 +61,7 @@ document.getElementById('patientForm').addEventListener('submit', function(event
     };
 
     // Enviar los datos de Patient usando Fetch API
-    fetch('https://backend-medication-request.onrender.com/medicationRequest', {
+    fetch('https://backend2-m79x.onrender.com/pacientes', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -143,7 +143,7 @@ document.getElementById('patientForm').addEventListener('submit', function(event
 };
 
     // Enviar los datos usando Fetch API
-    fetch('https://backend-medication-request.onrender.com/medicationRequest', { //Aquí estaría el backend de Render
+    fetch('https://backend2-m79x.onrender.com/pacientes', { //Aquí estaría el backend de Render
         method: 'POST',
         headers: {
         'Content-Type': 'application/json'
